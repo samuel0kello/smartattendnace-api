@@ -1,0 +1,59 @@
+name: Build & Deploy Ktor Backend
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up a Java environment for building your Ktor backend
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Run chmod to make gradlew executable
+        run: chmod +x ./gradlew
+
+      # Step 3: Gradle Build
+      - name: Run Gradle Build
+        run: ./gradlew build
+
+      # Step 4: Build Docker Image
+      - name: Build Docker Image
+        run: docker build -t smartattendanceapiregistry.azurecr.io/ktor-backend:latest .
+
+      # Step 5: Push Docker Image to Azure Container Registry (ACR)
+      - name: Push Docker Image to ACR
+        run: |
+          echo "${{ secrets.AZURE_ACR_PASSWORD }}" | docker login smartattendanceapiregistry.azurecr.io -u ${{ secrets.AZURE_ACR_USERNAME }} --password-stdin
+          docker push smartattendanceapiregistry.azurecr.io/ktor-backend:latest
+
+      # Step 6: Login to Azure
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: |
+            {
+              "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+              "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+              "tenantId": "${{ secrets.AZURE_TENANT_ID }}",
+              "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+            }
+
+      # Step 7: Deploy to Azure App Service
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "smartattendance-backend"
+          images: "smartattendanceapiregistry.azurecr.io/ktor-backend:latest"

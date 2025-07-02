@@ -1,0 +1,7 @@
+ktor:
+  deployment:
+    port: 8080
+    log: DEBUG
+  application:
+    modules:
+      - com.example.application.ApplicationKt.module

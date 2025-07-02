@@ -1,0 +1,2563 @@
+openapi: 3.0.0
+info:
+  title: Smart Attendance API
+  description: API for managing educational resources including users, courses, assignments, and attendance tracking
+  version: 1.0.0
+
+servers:
+  - url: https://smartattendance-backend-bug4bxgybhbwecey.canadacentral-01.azurewebsites.net
+    description: Azure deployed server
+  - url: https://smart-attendance-api-image-production.up.railway.app/
+    description: Railway deployed server
+  - url: http://localhost:8080
+    description: Development server
+
+paths:
+  /:
+    get:
+      summary: API Status
+      description: Get API version and status information
+      responses:
+        "200":
+          description: API status information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "Smart Attendance API"
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  status:
+                    type: string
+                    example: "running"
+
+  #
+  # Authentication Routes
+  #
+  /auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Creates a new user (student, lecturer, or admin) in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/StudentSignUpRequest'
+                - $ref: '#/components/schemas/LecturerSignUpRequest'
+                - $ref: '#/components/schemas/AdminSignUpRequest'
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Conflict - Email or ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login a user
+      description: Authenticates a user and provides access and refresh tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  userId: "123e4567-e89b-12d3-a456-426614174000"
+                  name: "John Doe"
+                  email: "john@example.com"
+                  role: "STUDENT"
+        "401":
+          description: Unauthorized - Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh authentication tokens
+      description: Get new access and refresh tokens using a valid refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        "200":
+          description: Tokens refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  userId: "123e4567-e89b-12d3-a456-426614174000"
+                  name: "John Doe"
+                  email: "john@example.com"
+                  role: "STUDENT"
+        "401":
+          description: Unauthorized - Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  #
+  # User Routes
+  #
+  /users/profile/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get public user profile
+      description: Get public profile information for a specific user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  name: "John Doe"
+                  email: "john@example.com"
+                  role: "STUDENT"
+                  regNo: "S12345"
+                  createdAt: "2023-01-01T12:00:00Z"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      description: Get profile information for the currently authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  id: "123e4567-e89b-12d3-a456-426614174000"
+                  name: "John Doe"
+                  email: "john@example.com"
+                  role: "STUDENT"
+                  regNo: "S12345"
+                  createdAt: "2023-01-01T12:00:00Z"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Users
+      summary: Update current user profile
+      description: Update profile information for the currently authenticated user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        "200":
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/admin:
+    get:
+      tags:
+        - Users
+      summary: Get all users (Admin only)
+      description: Get a list of all users in the system
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Users
+      summary: Create a new user (Admin only)
+      description: Create a new user with any role
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Conflict - Email or ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/admin/{id}:
+    put:
+      tags:
+        - Users
+      summary: Update a user (Admin only)
+      description: Update any user's information
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Users
+      summary: Delete a user (Admin only)
+      description: Delete a user from the system
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: User ID
+      responses:
+        "200":
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  #
+  # Course Routes
+  #
+  /courses:
+    get:
+      tags:
+        - Courses
+      summary: Get all courses
+      description: Get a list of all courses in the system
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Courses
+      summary: Create a new course
+      description: Create a new course (Lecturer or Admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourseRequest'
+      responses:
+        "201":
+          description: Course created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/admin/lecturers:
+    get:
+      tags:
+        - Courses
+      summary: Get all available lecturers
+      description: Get a list of all available lecturers in the system (Admin only)
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Lecturers retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  - id: "123e4567-e89b-12d3-a456-426614174000"
+                    name: "John Lecturer"
+                    email: "john@example.com"
+                  - id: "223e4567-e89b-12d3-a456-426614174001"
+                    name: "Jane Lecturer"
+                    email: "jane@example.com"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/admin/create:
+    post:
+        tags:
+          - Courses
+        summary: Create a course as admin
+        description: Create a new course with optional lecturer assignment (Admin only)
+        security:
+          - bearerAuth: [ ]
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminCourseCreateRequest'
+        responses:
+          "201":
+            description: Course created successfully
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/SuccessResponse'
+          "400":
+            description: Bad Request - Invalid data
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          "401":
+            description: Unauthorized
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          "403":
+            description: Forbidden - Admin access required
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          "404":
+            description: Lecturer not found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/admin/assign-lecturer/{courseId}/{lecturerId}:
+    post:
+      tags:
+        - Courses
+      summary: Assign lecturer to course
+      description: Assign a lecturer to an existing course (Admin only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+        - name: lecturerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Lecturer ID
+      responses:
+        "200":
+          description: Lecturer assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid ID format or user is not a lecturer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course or lecturer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /courses/{id}:
+    get:
+      tags:
+        - Courses
+      summary: Get course by ID
+      description: Get details for a specific course
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+      responses:
+        "200":
+          description: Course retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Courses
+      summary: Update a course
+      description: Update a course (Course owner or Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCourseRequest'
+      responses:
+        "200":
+          description: Course updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Not course owner or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Courses
+      summary: Delete a course
+      description: Delete a course (Course owner or Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+      responses:
+        "200":
+          description: Course deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Not course owner or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/lecturer/me:
+    get:
+      tags:
+        - Courses
+      summary: Get courses taught by current lecturer
+      description: Get all courses for the current authenticated lecturer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/lecturer/{id}:
+    get:
+      tags:
+        - Courses
+      summary: Get courses taught by a specific lecturer
+      description: Get all courses for a specific lecturer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Lecturer ID
+      responses:
+        "200":
+          description: Courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Lecturer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/student/me:
+    get:
+      tags:
+        - Courses
+      summary: Get courses for current student
+      description: Get all courses for the current authenticated student
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be student
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /courses/student/{id}:
+    get:
+      tags:
+        - Courses
+      summary: Get courses for a specific student
+      description: Get all courses for a specific student (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Student ID
+      responses:
+        "200":
+          description: Courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  #
+  # Attendance Routes
+  #
+  /attendance/sessions:
+    post:
+      tags:
+        - Attendance
+      summary: Create a new attendance session
+      description: Create a new attendance session for a course (Lecturer only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        "201":
+          description: Attendance session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/sessions/{id}:
+    get:
+      tags:
+        - Attendance
+      summary: Get attendance session by ID
+      description: Get details for a specific attendance session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Session ID
+      responses:
+        "200":
+          description: Session retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/sessions/code/{code}:
+    get:
+      tags:
+        - Attendance
+      summary: Get attendance session by code
+      description: Get details for a specific attendance session using its code
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Session code
+      responses:
+        "200":
+          description: Session retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/sessions/{id}/qr:
+    get:
+      tags:
+        - Attendance
+      summary: Generate QR code for session
+      description: Generate a QR code for a specific attendance session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Session ID
+      responses:
+        "200":
+          description: QR code generated successfully
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/sessions/lecturer/active:
+    get:
+      tags:
+        - Attendance
+      summary: Get active sessions for current lecturer
+      description: Get all active attendance sessions for the current lecturer
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Active sessions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/sessions/course/{courseId}:
+    get:
+      tags:
+        - Attendance
+      summary: Get sessions for a course
+      description: Get all attendance sessions for a specific course
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+      responses:
+        "200":
+          description: Sessions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/mark:
+    post:
+      tags:
+        - Attendance
+      summary: Mark attendance
+      description: Mark attendance for the current student (Student only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkAttendanceRequest'
+      responses:
+        "201":
+          description: Attendance marked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data or outside geofence
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be student
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: Conflict - Already marked attendance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/student/course/{courseId}:
+    get:
+      tags:
+        - Attendance
+      summary: Get student's attendance for a course
+      description: Get attendance records for the current student in a specific course
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+      responses:
+        "200":
+          description: Attendance records retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be student
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/student/{studentId}/course/{courseId}:
+    get:
+      tags:
+        - Attendance
+      summary: Get student's attendance for a course
+      description: Get attendance records for a specific student in a specific course (Lecturer/Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Student ID
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+      responses:
+        "200":
+          description: Attendance records retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Student or course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/session/{sessionId}:
+    get:
+      tags:
+        - Attendance
+      summary: Get attendance for a session
+      description: Get all attendance records for a specific session (Lecturer/Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Session ID
+      responses:
+        "200":
+          description: Attendance records retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/course/{courseId}:
+    get:
+      tags:
+        - Attendance
+      summary: Get attendance for a course
+      description: Get all attendance records for a specific course (Lecturer/Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+        - name: fromDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filter from date (ISO-8601)
+        - name: toDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filter to date (ISO-8601)
+      responses:
+        "200":
+          description: Attendance records retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          "403":
+            description: Forbidden - Must be lecturer or admin
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+          "404":
+            description: Course not found
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /attendance/{id}/status/{status}:
+        put:
+          tags:
+            - Attendance
+          summary: Update attendance status
+          description: Update the status of an attendance record (Lecturer/Admin only)
+          security:
+            - bearerAuth: [ ]
+          parameters:
+            - name: id
+              in: path
+              required: true
+              schema:
+                type: string
+                format: uuid
+              description: Attendance record ID
+            - name: status
+              in: path
+              required: true
+              schema:
+                type: string
+                enum: [ PRESENT, ABSENT, LATE ]
+              description: New attendance status
+          responses:
+            "200":
+              description: Attendance status updated successfully
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/SuccessResponse'
+            "400":
+              description: Bad Request - Invalid status
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResponse'
+            "401":
+              description: Unauthorized
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResponse'
+            "403":
+              description: Forbidden - Must be lecturer or admin
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResponse'
+            "404":
+              description: Attendance record not found
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/ErrorResponse'
+
+  #
+  # Assignment Routes
+  #
+  /assignments:
+    post:
+      tags:
+        - Assignments
+      summary: Create a new assignment
+      description: Create a new assignment for a course (Lecturer only)
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssignmentRequest'
+      responses:
+        "201":
+          description: Assignment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/course/{courseId}:
+    get:
+      tags:
+        - Assignments
+      summary: Get assignments for a course
+      description: Get all assignments for a specific course
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Course ID
+      responses:
+        "200":
+          description: Assignments retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/lecturer/me:
+    get:
+      tags:
+        - Assignments
+      summary: Get assignments created by current lecturer
+      description: Get all assignments created by the current authenticated lecturer
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Assignments retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/lecturer/{lecturerId}:
+    get:
+      tags:
+        - Assignments
+      summary: Get assignments created by a specific lecturer
+      description: Get all assignments created by a specific lecturer
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: lecturerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Lecturer ID
+      responses:
+        "200":
+          description: Assignments retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Lecturer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/{id}:
+    get:
+      tags:
+        - Assignments
+      summary: Get assignment by ID
+      description: Get details for a specific assignment
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Assignment ID
+      responses:
+        "200":
+          description: Assignment retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Assignments
+      summary: Update an assignment
+      description: Update a specific assignment (Assignment creator or Admin only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Assignment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAssignmentRequest'
+      responses:
+        "200":
+          description: Assignment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Not assignment creator or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Assignments
+      summary: Delete an assignment
+      description: Delete a specific assignment (Assignment creator or Admin only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Assignment ID
+      responses:
+        "200":
+          description: Assignment deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Not assignment creator or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/submissions/{assignmentId}:
+    post:
+      tags:
+        - Submissions
+      summary: Submit an assignment
+      description: Submit an assignment solution (Student only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: assignmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Assignment ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubmissionRequest'
+      responses:
+        "201":
+          description: Assignment submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be student
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/submissions/assignment/{assignmentId}:
+    get:
+      tags:
+        - Submissions
+      summary: Get submissions for an assignment
+      description: Get all submissions for a specific assignment (Lecturer/Admin only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: assignmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Assignment ID
+      responses:
+        "200":
+          description: Submissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/submissions/student/me:
+    get:
+      tags:
+        - Submissions
+      summary: Get submissions by current student
+      description: Get all submissions made by the current authenticated student
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Submissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be student
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/submissions/student/{studentId}:
+    get:
+      tags:
+        - Submissions
+      summary: Get submissions by a specific student
+      description: Get all submissions made by a specific student (Lecturer/Admin only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Student ID
+      responses:
+        "200":
+          description: Submissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/submissions/{id}:
+    get:
+      tags:
+        - Submissions
+      summary: Get submission by ID
+      description: Get details for a specific submission
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Submission ID
+      responses:
+        "200":
+          description: Submission retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Submission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/submissions/{id}/grade:
+    post:
+      tags:
+        - Grades
+      summary: Grade a submission
+      description: Grade a specific submission (Lecturer/Admin only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Submission ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GradeRequest'
+      responses:
+        "201":
+          description: Submission graded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "400":
+          description: Bad Request - Invalid data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Submission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/grades/assignment/{assignmentId}:
+    get:
+      tags:
+        - Grades
+      summary: Get grades for an assignment
+      description: Get all grades for a specific assignment (Lecturer/Admin only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: assignmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Assignment ID
+      responses:
+        "200":
+          description: Grades retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Assignment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/grades/student/me:
+    get:
+      tags:
+        - Grades
+      summary: Get grades for current student
+      description: Get all grades for the current authenticated student
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Grades retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be student
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/grades/student/{studentId}:
+    get:
+      tags:
+        - Grades
+      summary: Get grades for a specific student
+      description: Get all grades for a specific student (Lecturer/Admin only)
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Student ID
+      responses:
+        "200":
+          description: Grades retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: Forbidden - Must be lecturer or admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Student not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /assignments/grades/{id}:
+    get:
+      tags:
+        - Grades
+      summary: Get grade by ID
+      description: Get details for a specific grade
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Grade ID
+      responses:
+        "200":
+          description: Grade retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: Grade not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # Common response schemas
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+        error:
+          type: null
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: null
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+              example: "Invalid request"
+            code:
+              type: integer
+              example: 400
+            details:
+              type: object
+              nullable: true
+
+    # Authentication schemas
+    StudentSignUpRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+        - regNo
+      properties:
+        name:
+          type: string
+          example: "John Student"
+        email:
+          type: string
+          format: email
+          example: "john@student.com"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+        role:
+          type: string
+          enum: [ STUDENT ]
+          example: "STUDENT"
+        regNo:
+          type: string
+          example: "STU12345"
+        department:
+          type: string
+          example: "Computer Science"
+          nullable: true
+        yearOfStudy:
+          type: integer
+          example: 2
+          nullable: true
+
+    LecturerSignUpRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+        - employeeId
+      properties:
+        name:
+          type: string
+          example: "Jane Lecturer"
+        email:
+          type: string
+          format: email
+          example: "jane@lecturer.com"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+        role:
+          type: string
+          enum: [ LECTURER ]
+          example: "LECTURER"
+        employeeId:
+          type: string
+          example: "LEC12345"
+        department:
+          type: string
+          example: "Computer Science"
+          nullable: true
+
+    AdminSignUpRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+      properties:
+        name:
+          type: string
+          example: "Admin User"
+        email:
+          type: string
+          format: email
+          example: "admin@example.com"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+        role:
+          type: string
+          enum: [ ADMIN ]
+          example: "ADMIN"
+        department:
+          type: string
+          example: "IT Administration"
+          nullable: true
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    # User schemas
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - email
+        - password
+        - role
+      properties:
+        name:
+          type: string
+          example: "New User"
+        email:
+          type: string
+          format: email
+          example: "newuser@example.com"
+        password:
+          type: string
+          format: password
+          example: "securePassword123"
+        role:
+          type: string
+          enum: [ ADMIN, LECTURER, STUDENT ]
+          example: "STUDENT"
+        regNo:
+          type: string
+          example: "STU12345"
+          nullable: true
+        employeeId:
+          type: string
+          example: "LEC12345"
+          nullable: true
+        department:
+          type: string
+          example: "Computer Science"
+          nullable: true
+        yearOfStudy:
+          type: integer
+          example: 2
+          nullable: true
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Updated Name"
+          nullable: true
+        email:
+          type: string
+          format: email
+          example: "updated@example.com"
+          nullable: true
+        password:
+          type: string
+          format: password
+          example: "newSecurePassword123"
+          nullable: true
+        department:
+          type: string
+          example: "Computer Science"
+          nullable: true
+        yearOfStudy:
+          type: integer
+          example: 3
+          nullable: true
+
+    # Course schemas
+    CreateCourseRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Introduction to Computer Science"
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateScheduleRequest'
+          nullable: true
+
+    CreateScheduleRequest:
+      type: object
+      required:
+        - dayOfWeek
+        - startTime
+        - endTime
+      properties:
+        dayOfWeek:
+          type: string
+          enum: [ MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY ]
+          example: "MONDAY"
+        startTime:
+          type: string
+          example: "09:00"
+        endTime:
+          type: string
+          example: "11:00"
+        roomNumber:
+          type: string
+          example: "CS101"
+          nullable: true
+        meetingLink:
+          type: string
+          example: "https://meet.example.com/cs101"
+          nullable: true
+
+    UpdateCourseRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Updated Course Name"
+          nullable: true
+
+    AdminCourseCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Introduction to Computer Science"
+        lecturerId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+          nullable: true
+          description: "Optional lecturer ID to assign to the course"
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreateScheduleRequest'
+          nullable: true
+
+      LecturerDto:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+          name:
+            type: string
+            example: "John Lecturer"
+          email:
+            type: string
+            format: email
+            example: "john@example.com"
+
+    # Attendance schemas
+    CreateSessionRequest:
+      type: object
+      required:
+        - courseId
+        - sessionType
+        - durationMinutes
+      properties:
+        courseId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        sessionType:
+          type: string
+          enum: [ PHYSICAL, ONLINE ]
+          example: "PHYSICAL"
+        durationMinutes:
+          type: integer
+          minimum: 1
+          example: 60
+        geoFence:
+          $ref: '#/components/schemas/GeoFenceDto'
+
+    GeoFenceDto:
+      type: object
+      required:
+        - latitude
+        - longitude
+        - radiusMeters
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 40.7128
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: -74.0060
+        radiusMeters:
+          type: number
+          format: double
+          minimum: 1
+          example: 100
+
+    MarkAttendanceRequest:
+      type: object
+      required:
+        - sessionCode
+      properties:
+        sessionCode:
+          type: string
+          example: "ABC123"
+        location:
+          $ref: '#/components/schemas/LocationDto'
+        deviceId:
+          type: string
+          example: "device-123456"
+          nullable: true
+
+    LocationDto:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          minimum: -90
+          maximum: 90
+          example: 40.7128
+        longitude:
+          type: number
+          format: double
+          minimum: -180
+          maximum: 180
+          example: -74.0060
+
+    # Assignment schemas
+    CreateAssignmentRequest:
+      type: object
+      required:
+        - courseId
+        - title
+        - description
+        - dueDate
+      properties:
+        courseId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        title:
+          type: string
+          example: "Assignment 1: Introduction to Programming"
+        description:
+          type: string
+          example: "Create a simple program that demonstrates variables and control structures."
+        dueDate:
+          type: string
+          format: date-time
+          example: "2023-04-15T23:59:59Z"
+
+    UpdateAssignmentRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Updated Assignment Title"
+          nullable: true
+        description:
+          type: string
+          example: "Updated assignment description with new requirements."
+          nullable: true
+        dueDate:
+          type: string
+          format: date-time
+          example: "2023-04-20T23:59:59Z"
+          nullable: true
+
+    CreateSubmissionRequest:
+      type: object
+      required:
+        - fileUrl
+      properties:
+        fileUrl:
+          type: string
+          example: "https://example.com/storage/assignments/submission123.pdf"
+
+    GradeRequest:
+      type: object
+      required:
+        - score
+      properties:
+        score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          example: 85.5
+        feedback:
+          type: string
+          example: "Good work overall. Check your formatting in sections 2 and 3."
+          nullable: true
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT access token obtained from /auth/login endpoint"
+
+security:
+  - bearerAuth: [ ]
+
+tags:
+  - name: Authentication
+    description: User authentication and registration
+  - name: Users
+    description: User management
+  - name: Courses
+    description: Course management
+  - name: Attendance
+    description: Attendance tracking and management
+  - name: Assignments
+    description: Assignment management
+  - name: Submissions
+    description: Assignment submissions
+  - name: Grades
+    description: Grading and feedback

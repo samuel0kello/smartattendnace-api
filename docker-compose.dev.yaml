@@ -1,0 +1,14 @@
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    command: >
+      sh -c "while ! nc -z db 3306; do sleep 1; done; java -jar app.jar"
+    volumes:
+      - ./logs:/usr/src/app/logs
+volumes:
+  mysql-data:
