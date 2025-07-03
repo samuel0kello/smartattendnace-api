@@ -56,7 +56,6 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:0.43.0") // For timestamps
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:1.4.11")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
@@ -85,9 +84,11 @@ dependencies {
 
     implementation("io.ktor:ktor-server-status-pages:3.1.1")
 
-    // Dagger Dependency Injection
-    implementation("com.google.dagger:dagger:2.48.1")
-    ksp("com.google.dagger:dagger-compiler:2.48.1")
+    //koin
+    implementation("io.insert-koin:koin-core:3.5.0")
+    implementation("io.insert-koin:koin-ktor:3.5.0")
+    implementation("io.insert-koin:koin-logger-slf4j:3.5.0")
+
 
 
     implementation("com.google.zxing:core:3.5.2")
