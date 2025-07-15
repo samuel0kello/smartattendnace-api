@@ -1,6 +1,7 @@
 package com.example
 
 import com.example.api.authRoutes
+import com.example.api.plugins.configureKoin
 import com.example.config.Config
 import com.example.database.DatabaseProvider
 import com.example.di.appModule
@@ -23,8 +24,8 @@ import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 
-fun Application.module(config: Config) {
-    configureDI(config)
+fun Application.module() {
+    configureKoin()
 
     // Initialize database
     val databaseProvider = get<DatabaseProvider>()
@@ -39,13 +40,6 @@ fun Application.module(config: Config) {
 
     // Configure routing
     configureRouting()
-}
-
-fun Application.configureDI(config: Config) {
-    install(Koin) {
-        slf4jLogger()
-        modules(appModule(config))
-    }
 }
 
 
