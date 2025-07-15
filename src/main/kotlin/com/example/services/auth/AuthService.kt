@@ -59,7 +59,7 @@ class AuthService (private val tokenProvider: TokenProvider){
             throw IllegalArgumentException("Account is deactivated")
         }
 
-        val token = tokenProvider.createToken(user)
+        val token = tokenProvider.createTokens(user)
         return@transaction LoginTokenResponse(token)
     }
 
@@ -74,7 +74,7 @@ class AuthService (private val tokenProvider: TokenProvider){
             throw IllegalArgumentException("Account is deactivated")
         }
 
-        return@transaction tokenProvider.createToken(user)
+        return@transaction tokenProvider.createTokens(user)
     }
 
     fun resetPassword(email: String): PasswordResetResponse = transaction {

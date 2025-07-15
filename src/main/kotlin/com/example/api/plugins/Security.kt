@@ -26,6 +26,7 @@ fun Application.configureSecurity() {
             realm = jwtRealm
             verifier(tokenProvider.getVerifier())
             validate { credential ->
+                val payload = credential.payload
                 val userIdString = credential.payload.getClaim("userId").asString()
                 val email = credential.payload.getClaim("email").asString()
                 val role = credential.payload.getClaim("role").asString()
@@ -33,6 +34,7 @@ fun Application.configureSecurity() {
                 if (userIdString != null && email != null && role != null) {
                     try {
                         //TO-DO: Check if user exists
+                        JWTPrincipal(payload)
                     } catch (e: IllegalArgumentException) {
                         return@validate null
                     }
