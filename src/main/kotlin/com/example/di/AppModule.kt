@@ -1,33 +1,49 @@
 package com.example.di
 
-import dagger.Module
-import dagger.Provides
-import com.example.features.auth.services.JwtService
-import com.example.features.auth.util.RoleAuthorization
-import com.example.features.auth.util.RoleAuthorizationImpl
-import javax.inject.Singleton
+import com.example.config.ApiConfig
+import com.example.config.JwtConfig
+import com.example.config.PostgresConfig
+import com.example.config.core.EnvConfigurationLoader
+import com.example.services.auth.JwtTokenManager
+import com.example.services.auth.TokenProvider
+import org.koin.dsl.module
 
-/**
- * Core application module
- */
-@Module
-object AppModule {
+val appModule = module {
+    // Config
+    single {  }
     
-    @Provides
-    @Singleton
-    fun provideDatabaseFactory(): DatabaseFactory {
-        return DatabaseFactory()
-    }
+    // Database
+//    single {
+//        DatabaseProvider(
+//            host = config.databaseHost,
+//            port = config.databasePort,
+//            databaseName = config.dbName,
+//            user = config.dbUser,
+//            password = config.dbPassword
+//        )
+//    }
+//
+//    // Auth
+//    single<TokenProvider> { JwtConfig(config.jwtSecret) }
+//    single { AuthService(get()) }
     
-    @Provides
-    @Singleton
-    fun provideJwtService(): JwtService {
-        return JwtService()
-    }
-    
-    @Provides
-    @Singleton
-    fun provideRoleAuthorization(): RoleAuthorization {
-        return RoleAuthorizationImpl()
+    // Add other services here
+}
+
+val configModule = module {
+    single { EnvConfigurationLoader.load(ApiConfig::class) }
+    single { EnvConfigurationLoader.load(PostgresConfig::class) }
+    single { EnvConfigurationLoader.load(JwtConfig::class) }
+}
+
+val securityModule = module {
+    single <TokenProvider> {
+        val jwtConfig: JwtConfig = get()
+        JwtTokenManager(
+            jwtConfig.jwtSecrete,
+            jwtConfig.jwtIssuer,
+            jwtConfig.jwtAudience,
+            jwtConfig.jwtRealm,
+        )
     }
 }

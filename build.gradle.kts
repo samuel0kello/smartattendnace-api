@@ -10,14 +10,14 @@ group = "com.smart-attendance"
 version = "0.0.1"
 
 application {
-    mainClass = "io.ktor.server.netty.EngineMain"
+    mainClass = "com.example.ApplicationKt"
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 
     tasks.withType<Jar> {
         manifest {
-            attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
+            attributes["Main-Class"] = "com.example.ApplicationKt"
         }
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
@@ -42,6 +42,11 @@ dependencies {
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.config.yaml)
+    implementation("io.ktor:ktor-server-core:3.1.1")
+    implementation("io.ktor:ktor-server-host-common:3.1.1")
+    implementation("io.ktor:ktor-server-core:3.1.1")
+    implementation("io.ktor:ktor-server-auth:3.1.1")
+    implementation("io.ktor:ktor-server-auth:3.1.1")
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
 
@@ -56,13 +61,10 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-java-time:0.43.0") // For timestamps
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:1.4.11")
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
-
-    implementation("com.mysql:mysql-connector-j:9.2.0")
-
+    implementation("org.postgresql:postgresql:42.7.7")
     implementation("org.mindrot:jbcrypt:0.4")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
@@ -85,9 +87,11 @@ dependencies {
 
     implementation("io.ktor:ktor-server-status-pages:3.1.1")
 
-    // Dagger Dependency Injection
-    implementation("com.google.dagger:dagger:2.48.1")
-    ksp("com.google.dagger:dagger-compiler:2.48.1")
+    //koin
+    implementation("io.insert-koin:koin-core:3.5.0")
+    implementation("io.insert-koin:koin-ktor:3.5.0")
+    implementation("io.insert-koin:koin-logger-slf4j:3.5.0")
+
 
 
     implementation("com.google.zxing:core:3.5.2")
