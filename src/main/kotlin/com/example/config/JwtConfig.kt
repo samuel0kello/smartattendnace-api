@@ -15,5 +15,5 @@ data class JwtConfig(
     val jwtAudience: String,
 
     @ConfigurationProperty("REALM", optional = true)
-    val jwtRealm: String? = null,
+    val jwtRealm: String,
 )
