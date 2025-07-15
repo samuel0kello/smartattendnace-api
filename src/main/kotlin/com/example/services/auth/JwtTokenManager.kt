@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit
 interface TokenProvider {
     fun createTokens(user: User): CredentialsResponse
     fun getVerifier(): JWTVerifier
+    fun verifyToken(token: String): String?
 }
 
 class JwtTokenManager(
@@ -32,6 +33,13 @@ class JwtTokenManager(
         .build()
 
     override fun getVerifier(): JWTVerifier = verifier
+    override fun verifyToken(token: String): String? {
+        return try {
+            verifier.verify(token).claims["id"]?.asString()
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     override fun createTokens(user: User) = CredentialsResponse(
         createToken(user, accessTokenValidityInMs, "access"),
