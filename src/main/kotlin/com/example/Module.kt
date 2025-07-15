@@ -1,30 +1,25 @@
 package com.example
 
 import com.example.api.authRoutes
-import com.example.config.Config
+import com.example.api.plugins.configureKoin
+import com.example.api.plugins.configureSecurity
 import com.example.database.DatabaseProvider
-import com.example.di.appModule
 import com.example.services.auth.AuthService
-import com.example.services.auth.TokenProvider
 import com.example.util.ApiResponse
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 import org.koin.ktor.ext.get
-import org.koin.ktor.plugin.Koin
-import org.koin.logger.slf4jLogger
 
-fun Application.module(config: Config) {
-    configureDI(config)
+fun Application.module() {
+    configureKoin()
 
     // Initialize database
     val databaseProvider = get<DatabaseProvider>()
@@ -33,19 +28,12 @@ fun Application.module(config: Config) {
     // Configure plugins
     configureSerialization()
     configureCORS()
-    configureAuthentication()
+    configureSecurity()
     configureStatusPages()
     configureSwagger()
 
     // Configure routing
     configureRouting()
-}
-
-fun Application.configureDI(config: Config) {
-    install(Koin) {
-        slf4jLogger()
-        modules(appModule(config))
-    }
 }
 
 
@@ -72,37 +60,6 @@ fun Application.configureCORS() {
         allowHeader(HttpHeaders.AccessControlAllowOrigin)
         allowCredentials = true
         anyHost()
-    }
-}
-
-fun Application.configureAuthentication() {
-    val tokenProvider = get<TokenProvider>()
-
-    install(Authentication) {
-        jwt("auth-jwt") {
-            verifier(tokenProvider.getVerifier())
-            realm = "smart-attendance-api"
-            validate { credential ->
-                val payload = credential.payload
-                val id = payload.getClaim("id").asString()
-                val email = payload.getClaim("email").asString()
-                val role = payload.getClaim("role").asString()
-                val type = payload.getClaim("type").asString()
-
-                // Only accept access tokens for authentication
-                if (id != null && email != null && role != null && type == "access") {
-                    JWTPrincipal(payload)
-                } else {
-                    null
-                }
-            }
-            challenge { _, _ ->
-                call.respond(
-                    HttpStatusCode.Unauthorized,
-                    mapOf("success" to false, "data" to null, "error" to "Invalid or expired token")
-                )
-            }
-        }
     }
 }
 

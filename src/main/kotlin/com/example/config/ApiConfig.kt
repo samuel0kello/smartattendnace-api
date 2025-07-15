@@ -7,4 +7,6 @@ import com.example.config.core.ConfigurationProperty
 data class ApiConfig(
     @ConfigurationProperty("SERVER-PORT")
     val serverPort: Int,
+    @ConfigurationProperty("HOST")
+    val host: String,
 )

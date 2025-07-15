@@ -45,6 +45,8 @@ dependencies {
     implementation("io.ktor:ktor-server-core:3.1.1")
     implementation("io.ktor:ktor-server-host-common:3.1.1")
     implementation("io.ktor:ktor-server-core:3.1.1")
+    implementation("io.ktor:ktor-server-auth:3.1.1")
+    implementation("io.ktor:ktor-server-auth:3.1.1")
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
 
@@ -62,7 +64,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.postgresql:postgresql:42.7.7")
     implementation("org.mindrot:jbcrypt:0.4")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
