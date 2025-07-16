@@ -10,7 +10,7 @@ group = "com.smart-attendance"
 version = "0.0.1"
 
 application {
-    mainClass = "com.example.ApplicationKt"
+    mainClass = "io.ktor.server.netty.EngineMain"
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -38,14 +38,11 @@ tasks {
 
 dependencies {
     implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.core.jvm)
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
-    implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.config.yaml)
-    implementation("io.ktor:ktor-server-core:3.1.1")
     implementation("io.ktor:ktor-server-host-common:3.1.1")
-    implementation("io.ktor:ktor-server-core:3.1.1")
-    implementation("io.ktor:ktor-server-auth:3.1.1")
     implementation("io.ktor:ktor-server-auth:3.1.1")
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
