@@ -1,4 +1,4 @@
-package com.example.api.plugins
+package com.example.plugins
 
 import com.example.di.appModule
 import com.example.di.configModule

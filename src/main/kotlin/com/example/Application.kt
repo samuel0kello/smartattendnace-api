@@ -1,6 +1,5 @@
 package com.example
 
-import com.example.config.ApiConfig
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
