@@ -1,6 +1,7 @@
 package com.example.plugins
 
 import com.example.di.IClosableComponent
+import com.example.di.appModule
 import io.ktor.server.application.*
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
@@ -19,7 +20,7 @@ fun Application.configureDI() {
     install(Koin) {
         slf4jLogger()
 
-        modules( /*modules */)
+        modules( appModule(environment.config))
 
         this.createEagerInstances()
     }

@@ -6,7 +6,8 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.jvmErasure
 
-object ConfigLoader {
+class ConfigLoader(private val config: ApplicationConfig) {
+
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> load(config: ApplicationConfig, clazz: KClass<T>): T {
         val configAnnotation = clazz.findAnnotation<Configuration>()
