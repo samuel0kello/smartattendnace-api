@@ -50,6 +50,8 @@ dependencies {
     implementation(libs.ktor.server.content.negotiation.jvm)
     implementation(libs.ktor.kotlinx.serialization)
 
+    implementation(libs.reflection)
+
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
     implementation("org.jetbrains.exposed:exposed-core:0.43.0")
