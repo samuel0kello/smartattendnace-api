@@ -1,30 +1,17 @@
 package com.example.di
 
-import com.example.config.Config
-import com.example.database.DatabaseProvider
-import com.example.services.auth.AuthService
-import com.example.services.auth.JwtConfig
-import com.example.services.auth.TokenProvider
+import com.example.config.core.DefaultConfigManager
+import com.example.config.core.IConfigManager
+import io.ktor.server.config.ApplicationConfig
+import io.ktor.server.config.ConfigLoader
+import org.koin.core.module.Module
 import org.koin.dsl.module
+import org.reflections.util.QueryFunction.single
 
-fun appModule(config: Config) = module {
-    // Config
-    single { config }
-    
-    // Database
-    single { 
-        DatabaseProvider(
-            host = config.databaseHost,
-            port = config.databasePort,
-            databaseName = config.dbName,
-            user = config.dbUser,
-            password = config.dbPassword
-        ) 
-    }
-    
-    // Auth
-    single<TokenProvider> { JwtConfig(config.jwtSecret) }
-    single { AuthService(get()) }
-    
-    // Add other services here
+fun appModule(applicationConfig: ApplicationConfig): Module = module {
+    single { applicationConfig }
+
+    single { com.example.config.core.ConfigLoader(get()) }
+
+    single <IConfigManager>{ DefaultConfigManager(get(), "com.example.config") }
 }

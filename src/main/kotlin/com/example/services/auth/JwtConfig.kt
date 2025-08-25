@@ -4,7 +4,6 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.example.database.entity.User
-import com.example.model.CredentialsResponse
 import com.example.model.LoginTokenResponse
 import java.util.*
 
@@ -45,7 +44,6 @@ class JwtConfig(private val secret: String) : TokenProvider {
         .withClaim("type", tokenType)
         .withExpiresAt(expiration)
         .sign(algorithm)
-
     // calculate expiration date based on current time + the given validity
     private fun getTokenExpiration(validity: Long = validityInMs) = Date(System.currentTimeMillis() + validity)
 }

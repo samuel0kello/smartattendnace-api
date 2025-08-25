@@ -3,4 +3,5 @@ ktor:
     port: 8080
     log: DEBUG
   application:
+    modules:
       - com.example.ApplicationKt.module

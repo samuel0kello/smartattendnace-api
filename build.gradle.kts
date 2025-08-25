@@ -10,7 +10,7 @@ group = "com.smart-attendance"
 version = "0.0.1"
 
 application {
-    mainClass = "com.example.ApplicationKt"
+    mainClass = "io.ktor.server.netty.EngineMain"
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -38,18 +38,19 @@ tasks {
 
 dependencies {
     implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.core.jvm)
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
-    implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.config.yaml)
-    implementation("io.ktor:ktor-server-core:3.1.1")
     implementation("io.ktor:ktor-server-host-common:3.1.1")
-    implementation("io.ktor:ktor-server-core:3.1.1")
+    implementation("io.ktor:ktor-server-auth:3.1.1")
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
 
     implementation(libs.ktor.server.content.negotiation.jvm)
     implementation(libs.ktor.kotlinx.serialization)
+
+    implementation(libs.reflection)
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
@@ -62,7 +63,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
-    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.postgresql:postgresql:42.7.7")
     implementation("org.mindrot:jbcrypt:0.4")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
