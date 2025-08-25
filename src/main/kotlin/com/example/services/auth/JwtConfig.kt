@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.example.database.entity.User
 import com.example.model.CredentialsResponse
+import com.example.model.LoginTokenResponse
 import java.util.*
 
 class JwtConfig(private val secret: String) : TokenProvider {
@@ -28,10 +29,12 @@ class JwtConfig(private val secret: String) : TokenProvider {
 
     override fun getVerifier(): JWTVerifier = verifier
 
-    override fun createToken(user: User) = CredentialsResponse(
+    override fun createToken(user: User) = LoginTokenResponse(
         createToken(user, getTokenExpiration(), "access"),
         createToken(user, getTokenExpiration(refreshValidityInMs), "refresh")
     )
+
+    override fun createAccessToken(user: User): String = createToken(user, getTokenExpiration(), "access")
 
     private fun createToken(user: User, expiration: Date, tokenType: String) = JWT.create()
         .withSubject("Authentication")
@@ -48,7 +51,8 @@ class JwtConfig(private val secret: String) : TokenProvider {
 }
 
 interface TokenProvider {
-    fun createToken(user: User): CredentialsResponse
+    fun createToken(user: User): LoginTokenResponse
     fun verifyToken(token: String): String?
+    fun createAccessToken(user: User): String
     fun getVerifier(): JWTVerifier
 }
