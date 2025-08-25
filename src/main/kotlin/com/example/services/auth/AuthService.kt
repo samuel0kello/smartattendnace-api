@@ -60,10 +60,13 @@ class AuthService (private val tokenProvider: TokenProvider){
         }
 
         val token = tokenProvider.createToken(user)
-        return@transaction LoginTokenResponse(token)
+        return@transaction LoginTokenResponse(
+            accessToken = token.accessToken,
+            refreshToken = token.refreshToken
+        )
     }
 
-    fun refreshToken(request: RefreshTokenRequest): CredentialsResponse = transaction {
+    fun refreshToken(request: RefreshTokenRequest): AccessTokenResponse = transaction {
         val userId = tokenProvider.verifyToken(request.refreshToken)
             ?: throw IllegalArgumentException("Invalid refresh token")
 
@@ -74,7 +77,9 @@ class AuthService (private val tokenProvider: TokenProvider){
             throw IllegalArgumentException("Account is deactivated")
         }
 
-        return@transaction tokenProvider.createToken(user)
+        val accessToken = tokenProvider.createAccessToken(user)
+
+        return@transaction AccessTokenResponse(accessToken)
     }
 
     fun resetPassword(email: String): PasswordResetResponse = transaction {
