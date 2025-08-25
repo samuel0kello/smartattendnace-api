@@ -99,7 +99,12 @@ fun Application.configureAuthentication() {
             challenge { _, _ ->
                 call.respond(
                     HttpStatusCode.Unauthorized,
-                    mapOf("success" to false, "data" to null, "error" to "Invalid or expired token")
+                    ApiResponse(
+                        success = false,
+                        message = "Authentication failed",
+                        data = null,
+                        error = "Invalid or expired token"
+                    )
                 )
             }
         }
@@ -144,14 +149,10 @@ fun Application.configureRouting() {
         get("/") {
             call.respond(
                 HttpStatusCode.OK,
-                mapOf(
-                    "success" to true,
-                    "data" to mapOf(
-                        "message" to "Smart Attendance API is running",
-                        "version" to "1.0.0",
-                        "docs" to "/swagger"
-                    ),
-                    "error" to null
+                ApiResponse(
+                    success = true,
+                    message = "Smart Attendance API is running",
+                    error = null,
                 )
             )
         }
@@ -160,13 +161,10 @@ fun Application.configureRouting() {
         get("/health") {
             call.respond(
                 HttpStatusCode.OK,
-                mapOf(
-                    "success" to true,
-                    "data" to mapOf(
-                        "status" to "UP",
-                        "timestamp" to System.currentTimeMillis()
-                    ),
-                    "error" to null
+                ApiResponse(
+                    success = true,
+                    message = "Health check successful",
+                    error = null,
                 )
             )
         }
