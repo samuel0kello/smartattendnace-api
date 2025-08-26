@@ -72,6 +72,9 @@ dependencies {
     implementation("io.ktor:ktor-server-openapi:2.3.5")
     implementation("io.ktor:ktor-server-cors:2.3.5")
 
+    implementation(libs.jakarta.mail.api)
+    implementation(libs.jakarta.mail.impl)
+
     // QR Code Generation (for attendance)
     implementation("com.google.zxing:core:3.5.1")
     implementation("com.google.zxing:javase:3.5.1")

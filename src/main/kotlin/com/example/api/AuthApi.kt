@@ -14,6 +14,7 @@ import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import java.lang.IllegalArgumentException
@@ -126,10 +127,24 @@ fun Route.authRoutes(authService: AuthService) {
                     )
                 }
             }
+            get("/verify-email") {
+                try {
+                    val token = call.parameters["token"]
+                        ?: return@get call.respond(HttpStatusCode.BadRequest, "Token is required")
 
-            post("/verify-email") {
-
+                    val verified = authService.verifyEmail(token)
+                    if (verified) {
+                        call.respond(HttpStatusCode.OK, mapOf("message" to "Email verified successfully"))
+                    } else {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Email verification failed"))
+                    }
+                } catch (e: IllegalArgumentException) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("message" to e.message))
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, mapOf("message" to "An error occurred"))
+                }
             }
         }
+
     }
 }
