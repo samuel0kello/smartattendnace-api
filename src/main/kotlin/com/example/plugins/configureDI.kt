@@ -4,20 +4,17 @@ import com.example.di.IClosableComponent
 import com.example.di.appModule
 import com.example.di.authModule
 import com.example.di.databaseModule
+import com.example.di.emailModule
 import io.ktor.server.application.*
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.koin.ktor.ext.getKoin
 import org.koin.ktor.plugin.Koin
-import org.koin.ktor.plugin.KoinApplicationStopPreparing
-import org.koin.ktor.plugin.KoinApplicationStopped
 import org.koin.logger.slf4jLogger
 
 private val logger = KotlinLogging.logger {}
 
-/**
- * configure dependency injection and graceful shutdown
- */
+
 fun Application.configureDI() {
     install(Koin) {
         slf4jLogger()
@@ -25,21 +22,26 @@ fun Application.configureDI() {
         modules(
             appModule(environment.config),
             databaseModule,
-            authModule
+            authModule,
+            emailModule
         )
 
-        this.createEagerInstances()
+        createEagerInstances()
     }
 
-    environment.monitor.subscribe(ApplicationStarted) { logger.error { "Koin Application started" } }
+    // Monitor application lifecycle events
+    monitor.subscribe(ApplicationStarting) {
+        logger.info { "Koin Application starting" }
+    }
 
-    environment.monitor.subscribe(KoinApplicationStopPreparing) {
-        logger.error { "Shutdown started" }
+    monitor.subscribe(ApplicationStarted) {
+        logger.info { "Koin Application started" }
+    }
 
-        val closableComponents by lazy {
-            getKoin().getAll<IClosableComponent>()
-        }
+    monitor.subscribe(ApplicationStopping) {
+        logger.info { "Shutdown started" }
 
+        val closableComponents = getKoin().getAll<IClosableComponent>()
         closableComponents.forEach {
             runBlocking {
                 it.close()
@@ -47,6 +49,7 @@ fun Application.configureDI() {
         }
     }
 
-    environment.monitor.subscribe(KoinApplicationStopped) { logger.error { "Shutdown completed gracefully" } }
-
+    monitor.subscribe(ApplicationStopped) {
+        logger.info { "Shutdown completed gracefully" }
+    }
 }
