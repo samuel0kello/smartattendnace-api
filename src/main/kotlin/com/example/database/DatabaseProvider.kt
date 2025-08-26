@@ -1,5 +1,6 @@
 package com.example.database
 
+import com.example.config.DatabaseConfig
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
@@ -11,20 +12,16 @@ import java.sql.Connection
 import com.example.database.entity.Users
 
 class DatabaseProvider(
-    private val host: String,
-    private val port: String,
-    private val databaseName: String,
-    private val user: String,
-    private val password: String
+    private val dbConfig: DatabaseConfig,
 ) {
     fun init() {
         createDatabaseIfNotExists()
 
         val config = HikariConfig().apply {
             driverClassName = "org.postgresql.Driver"
-            jdbcUrl = "jdbc:postgresql://$host:$port/$databaseName?useSSL=false"
-            username = user
-            password = this@DatabaseProvider.password
+            jdbcUrl = "jdbc:postgresql://${dbConfig.host}:${dbConfig.port}/${dbConfig.databaseName}?useSSL=false"
+            username = dbConfig.username
+            password = this@DatabaseProvider.dbConfig.password
             maximumPoolSize = 10
             isAutoCommit = false
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
@@ -48,9 +45,9 @@ class DatabaseProvider(
     private fun createDatabaseIfNotExists() {
         val postgresConfig = HikariConfig().apply {
             driverClassName = "org.postgresql.Driver"
-            jdbcUrl = "jdbc:postgresql://$host:$port/postgres?useSSL=false"  // Connect to default database
-            username = user
-            password = this@DatabaseProvider.password
+            jdbcUrl = "jdbc:postgresql://${dbConfig.host}:${dbConfig.port}/postgres?useSSL=false"
+            username = dbConfig.username
+            password = this@DatabaseProvider.dbConfig.password
             maximumPoolSize = 1
             isAutoCommit = true
         }
@@ -58,14 +55,14 @@ class DatabaseProvider(
         HikariDataSource(postgresConfig).use { dataSource ->
             dataSource.connection.use { connection ->
                 connection.autoCommit = true
-                val databaseExists = checkIfDatabaseExists(connection, databaseName)
+                val databaseExists = checkIfDatabaseExists(connection, dbConfig.databaseName)
 
                 if (!databaseExists) {
-                    println("Database '$databaseName' does not exist. Creating it now.")
+                    println("Database '${dbConfig.databaseName}' does not exist. Creating it now.")
                     val statement = connection.createStatement()
-                    statement.execute("CREATE DATABASE $databaseName")
+                    statement.execute("CREATE DATABASE ${dbConfig.databaseName}")
                     statement.close()
-                    println("Database '$databaseName' created successfully.")
+                    println("Database '${dbConfig.databaseName}' created successfully.")
                 }
             }
         }
