@@ -14,7 +14,7 @@ fun main() {
 
     ConfigurationProvider.appConfig = config
 
-    embeddedServer(Netty, port = config.port, host = config.host){
+    embeddedServer(Netty, port = config.deployment.port, host = config.deployment.host){
         module()
     }.start(wait = true)
 }
