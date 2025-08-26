@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.ktor)
+    alias(ktorLibs.plugins.ktor)
     kotlin("plugin.serialization") version "2.1.20"
     id("com.google.devtools.ksp") version "2.1.20-1.0.32"
     id("com.gradleup.shadow") version "8.3.6"

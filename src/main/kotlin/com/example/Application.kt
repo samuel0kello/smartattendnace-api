@@ -1,37 +1,20 @@
 package com.example
 
-import com.example.plugins.configureDI
-import io.github.cdimascio.dotenv.dotenv
-import io.ktor.server.application.*
+import com.example.config.AppConfig
+import com.example.config.ConfigurationProvider
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.response.respond
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
-import org.koin.dsl.module
-import org.koin.ktor.plugin.Koin
-import org.koin.logger.slf4jLogger
 
 
-fun main(args: Array<String>) {
+fun main() {
+    val config = ApplicationConfig("application.yaml")
+        .property("ktor")
+        .getAs<AppConfig>()
 
-    val env = System.getenv("KTOR_ENV") ?: "dev"
-    dotenv {
-        directory = "./config/env"
-        filename = ".env.$env"
-        ignoreIfMissing = false
-        ignoreIfMalformed = false
-    }
-}
+    ConfigurationProvider.appConfig = config
 
-
-fun Application.module() {
-    configureDI()
-
-    routing {
-        get ("/") {
-            call.respond("Hello World!")
-        }
-    }
+    embeddedServer(Netty, port = config.port, host = config.host){
+        module()
+    }.start(wait = true)
 }
