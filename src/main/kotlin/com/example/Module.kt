@@ -1,12 +1,11 @@
 package com.example
 
-import com.example.config.Config
 import com.example.database.DatabaseProvider
 import com.example.plugins.*
 import io.ktor.server.application.*
 import org.koin.ktor.ext.get
 
-fun Application.module(config: Config) {
+fun Application.module() {
     configureDI()
 
     // Initialize database

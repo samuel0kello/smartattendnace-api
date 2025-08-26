@@ -1,5 +1,15 @@
 package com.example.plugins
 
+import com.example.api.authRoutes
+import com.example.services.auth.AuthService
+import com.example.util.ApiResponse
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.Application
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
+import org.koin.ktor.ext.get
+
 fun Application.configureRouting() {
     val authService = get<AuthService>()
 
@@ -8,14 +18,11 @@ fun Application.configureRouting() {
         get("/") {
             call.respond(
                 HttpStatusCode.OK,
-                mapOf(
-                    "success" to true,
-                    "data" to mapOf(
-                        "message" to "Smart Attendance API is running",
-                        "version" to "1.0.0",
-                        "docs" to "/swagger"
-                    ),
-                    "error" to null
+                ApiResponse(
+                    success = true,
+                    message = "Welcome to Smart Attendance API",
+                    data = null,
+                    error = null
                 )
             )
         }
@@ -24,13 +31,11 @@ fun Application.configureRouting() {
         get("/health") {
             call.respond(
                 HttpStatusCode.OK,
-                mapOf(
-                    "success" to true,
-                    "data" to mapOf(
-                        "status" to "UP",
-                        "timestamp" to System.currentTimeMillis()
-                    ),
-                    "error" to null
+                ApiResponse(
+                    success = true,
+                    message = "Health check successful",
+                    data = null,
+                    error = null
                 )
             )
         }
