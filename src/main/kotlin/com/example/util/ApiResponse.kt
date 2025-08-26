@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 data class ApiResponse(
     val success: Boolean,
     val message: String? = null,
+    @Serializable(with = ResponseDataSerializer::class)
     val data: ResponseData? = null,
     val error: String? = null
 )

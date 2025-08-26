@@ -1,6 +1,12 @@
 ktor:
-  deployment:
-    port: 8080
-    log: DEBUG
-  application:
-      - com.example.ApplicationKt.module
+  host: "$PROD_HOST:0.0.0.0"
+  port: "$PROD_PORT:8080"
+  jwtSecret:
+    secret:"$JWT_SECRETE:devSecreteKey"
+  database:
+    jdbcUrl: "$DB_DRIVER_CLASS_NAME:org.postgresql.Driver"
+    host: "$DB_HOST:localhost"
+    port: "$DATABASE_PORT:5432"
+    username: "$DB_USERNAME:postgres"
+    password: "$DB_PASSWORD:root"
+    databaseName: "$DB_NAME:smartattendance"

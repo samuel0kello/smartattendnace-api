@@ -14,13 +14,19 @@ data class LoginCredentials(
 
 @Serializable
 data class LoginTokenResponse(
-    val credentials: CredentialsResponse
+    val accessToken: String,
+    val refreshToken: String
 ): ResponseData()
 
 @Serializable
 data class CredentialsResponse(
     val accessToken: String,
     val refreshToken: String
+): ResponseData()
+
+@Serializable
+data class AccessTokenResponse(
+    val accessToken: String
 ): ResponseData()
 
 @Serializable
