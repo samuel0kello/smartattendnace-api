@@ -4,12 +4,17 @@ import com.example.database.entity.User
 import com.example.database.entity.UserRole
 import com.example.database.entity.Users
 import com.example.model.*
+import com.example.services.email.EmailVerificationService
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
 import java.security.SecureRandom
+import java.time.LocalDateTime
 import java.util.*
 
-class AuthService (private val tokenProvider: TokenProvider){
+class AuthService (
+    private val tokenProvider: TokenProvider,
+    private val emailVerificationService: EmailVerificationService
+){
 
     fun registerUser(request: UserRegistrationRequest): UserResponse = transaction {
         // Check if email already exists
@@ -40,11 +45,32 @@ class AuthService (private val tokenProvider: TokenProvider){
             }
 
             isActive = true
-            createdAt = System.currentTimeMillis()
-            updatedAt = System.currentTimeMillis()
+            createdAt = LocalDateTime.now()
+            updatedAt = LocalDateTime.now()
         }
 
+        emailVerificationService.sendVerificationEmail(user)
+
         return@transaction mapToUserResponse(user)
+    }
+
+    fun verifyEmail(token: String): Boolean = transaction {
+        val user = User.find {
+            Users.emailVerificationToken eq token
+        }.firstOrNull() ?: throw java.lang.IllegalArgumentException("Invalid verification token")
+
+        if(user.emailVerificationTokenExpiry?.isBefore(LocalDateTime.now()) == true) {
+            throw java.lang.IllegalArgumentException("Verification token has expired")
+        }
+
+        user.apply {
+            emailVerified = true
+            emailVerificationToken = null
+            emailVerificationTokenExpiry = null
+            updatedAt = LocalDateTime.now()
+        }
+
+        return@transaction true
     }
 
     fun login(credentials: LoginCredentials): LoginTokenResponse = transaction {
@@ -91,7 +117,7 @@ class AuthService (private val tokenProvider: TokenProvider){
 
         // Update user with new password
         user.passwordHash = BCrypt.hashpw(tempPassword, BCrypt.gensalt())
-        user.updatedAt = System.currentTimeMillis()
+        user.updatedAt = LocalDateTime.now()
 
         // In a real application, you would send an email with the temporary password
         // For now, we'll just return it in the response (not secure for production)
@@ -112,7 +138,7 @@ class AuthService (private val tokenProvider: TokenProvider){
 
         // Update with new password
         user.passwordHash = BCrypt.hashpw(request.newPassword, BCrypt.gensalt())
-        user.updatedAt = System.currentTimeMillis()
+        user.updatedAt = LocalDateTime.now()
 
         return@transaction mapToUserResponse(user)
     }
