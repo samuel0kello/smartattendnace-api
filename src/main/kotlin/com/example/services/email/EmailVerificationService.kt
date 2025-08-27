@@ -3,7 +3,7 @@ package com.example.services.email
 import com.example.config.AppConfig
 import com.example.database.entity.User
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 class EmailVerificationService(
     private val emailService: EmailService,
@@ -15,7 +15,7 @@ class EmailVerificationService(
 
     fun sendVerificationEmail(user: User) {
         val verificationToken = generateVerificationToken()
-        val verificationLink = "${appConfig.deployment.baseUrl}/api/auth/verify-email?token=$verificationToken"
+        val verificationLink = "${appConfig.deployment.baseUrl}api/auth/verify-email?token=$verificationToken"
         
         user.apply {
             emailVerificationToken = verificationToken
