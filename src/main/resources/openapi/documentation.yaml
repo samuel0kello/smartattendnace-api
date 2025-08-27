@@ -2133,15 +2133,20 @@ components:
     StudentSignUpRequest:
       type: object
       required:
-        - name
         - email
+        - firstName
+        - LastName
         - password
         - role
-        - regNo
+        - employerId
+        - registrationNumber
       properties:
-        name:
+        firstName:
           type: string
-          example: "John Student"
+          example: "John"
+        lastName:
+          type: string
+          example: "okello"
         email:
           type: string
           format: email
@@ -2154,16 +2159,12 @@ components:
           type: string
           enum: [ STUDENT ]
           example: "STUDENT"
-        regNo:
+        registrationNumber:
           type: string
           example: "STU12345"
-        department:
+        employerId:
           type: string
-          example: "Computer Science"
-          nullable: true
-        yearOfStudy:
-          type: integer
-          example: 2
+          example:
           nullable: true
 
     LecturerSignUpRequest:
