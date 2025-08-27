@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AppConfig(
-    val host: String,
-    val port: Int,
+    val deployment: DeploymentConfig,
+    val security: SecurityConfig,
     val database: DatabaseConfig,
-    val jwtSecret: String,
-)
+    val smtp: SmtpConfig,
+    )
