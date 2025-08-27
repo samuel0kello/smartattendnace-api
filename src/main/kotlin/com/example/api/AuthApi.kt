@@ -145,6 +145,5 @@ fun Route.authRoutes(authService: AuthService) {
                 }
             }
         }
-
     }
 }
