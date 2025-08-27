@@ -1,29 +1,29 @@
 ktor:
   deployment:
-    host: "$PROD_HOST:0.0.0.0"
-    port: "$PROD_PORT:8080"
-    baseUrl: "$BASE_URL:http://localhost:8080"
+    host: "$PROD_HOST"
+    port: "$PROD_PORT"
+    baseUrl: "$BASE_URL"
 
   security:
     jwt:
-      secret: "$JWT_SECRETE:devSecreteKey"
+      secret: "$JWT_SECRETE"
       issuer: ""
       audience: ""
       realm: ""
 
   database:
-    jdbcUrl: "$DB_DRIVER_CLASS_NAME:org.postgresql.Driver"
-    host: "$DB_HOST:localhost"
-    port: "$DATABASE_PORT:5432"
-    username: "$DB_USERNAME:postgres"
-    password: "$DB_PASSWORD:root"
-    databaseName: "$DB_NAME:smartattendance"
+    jdbcUrl: "$DB_DRIVER_CLASS_NAME"
+    host: "$DB_HOST"
+    port: "$DATABASE_PORT"
+    username: "$DB_USERNAME"
+    password: "$DB_PASSWORD"
+    databaseName: "$DB_NAME"
 
   smtp:
-    host: "$SMTP_HOST:smtp.gmail.com"
-    port: "$SMTP_PORT:587"
-    username: "$SMTP_USERNAME:your-email@gmail.com"
-    password: "$SMTP_PASSWORD:your-app-specific-password"
-    fromEmail: "$SMTP_FROM_EMAIL:your-email@gmail.com"
-    ssl: "$SMTP_SSL:true"
-    starttls: "$SMTP_STARTTLS:true"
+    host: "$SMTP_HOST"
+    port: "$SMTP_PORT"
+    username: "$SMTP_USERNAME"
+    password: "$SMTP_PASSWORD"
+    fromEmail: "$SMTP_FROM_EMAIL"
+    ssl: "$SMTP_SSL"
+    starttls: "$SMTP_STARTTLS"
