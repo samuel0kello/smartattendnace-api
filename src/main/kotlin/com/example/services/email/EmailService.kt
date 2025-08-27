@@ -39,7 +39,7 @@ class EmailService(private val config: SmtpConfig) {
             }
             Transport.send(message)
         } catch (e: MessagingException) {
-            throw EmailServiceException("Failed to send email", e)
+            throw EmailServiceException("Failed to send email error ${e.message}", e)
         }
     }
 }
