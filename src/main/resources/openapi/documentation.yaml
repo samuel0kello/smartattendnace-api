@@ -38,7 +38,7 @@ paths:
   #
   # Authentication Routes
   #
-  /auth/signup:
+  /auth/sign-up:
     post:
       tags:
         - Authentication
@@ -73,7 +73,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /auth/login:
+  /auth/sign-in:
     post:
       tags:
         - Authentication
@@ -142,6 +142,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/verify:
+    get:
+      tags:
+        - verify email
+      summary: Get a verification token sent to user email address for verification
+      description: Get email verification token from server
+      parameters:
+      responses:
+        "200":
+          description:
+          content:
+
 
   #
   # User Routes
