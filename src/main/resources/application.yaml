@@ -6,7 +6,7 @@ ktor:
 
   security:
     jwt:
-      secret: "$JWT_SECRETE"
+      secret: "$JWT_SECRET"
       issuer: ""
       audience: ""
       realm: ""
