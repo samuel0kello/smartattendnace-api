@@ -8,5 +8,5 @@ import org.koin.dsl.module
 val emailModule = module {
     single { get<AppConfig>().smtp}
     single{EmailService(get())}
-    single{ EmailVerificationService(get(),get())}
+    single{ EmailVerificationService(get())}
 }
