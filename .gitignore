@@ -38,8 +38,6 @@ build/
 .DS_Store
 
 ### Environment files
-.env*
-config/env/*
 !config/env/.env-prod
 .env.dev
 

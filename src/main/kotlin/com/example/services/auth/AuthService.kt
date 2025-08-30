@@ -16,61 +16,88 @@ class AuthService (
     private val emailVerificationService: EmailVerificationService
 ){
 
-    fun registerUser(request: UserRegistrationRequest): UserResponse = transaction {
-        // Check if email already exists
-        val existingUser = User.find { Users.email eq request.email }.firstOrNull()
-        if (existingUser != null) {
-            throw IllegalArgumentException("Email already registered")
-        }
+    fun registerUser(request: UserRegistrationRequest, baseUrl: String): UserResponse {
+        // Hold values produced inside the transaction so we can send email after commit
+        var createdUserResponse: UserResponse? = null
+        var emailToNotify: String? = null
+        var verificationToken: String? = null
 
-        validateRegistrationRequest(request)
-
-        val user = User.new {
-            email = request.email
-            passwordHash = BCrypt.hashpw(request.password, BCrypt.gensalt())
-            firstName = request.firstName
-            lastName = request.lastName
-            role = UserRole.valueOf(request.role)
-
-            // Set employerId based on role
-            employerId = when (role) {
-                UserRole.ADMIN, UserRole.LECTURER -> request.employerId ?: ""
-                else -> ""
+        transaction {
+            // Check if email already exists
+            val existingUser = User.find { Users.email eq request.email }.firstOrNull()
+            if (existingUser != null) {
+                throw IllegalArgumentException("Email already registered")
             }
 
-            // Set registrationNumber based on role
-            registrationNumber = when (role) {
-                UserRole.STUDENT -> request.registrationNumber ?: ""
-                else -> ""
+            validateRegistrationRequest(request)
+
+            val user = User.new {
+                email = request.email
+                passwordHash = BCrypt.hashpw(request.password, BCrypt.gensalt())
+                firstName = request.firstName
+                lastName = request.lastName
+                role = UserRole.valueOf(request.role)
+
+                // Set employerId based on role
+                employerId = when (role) {
+                    UserRole.ADMIN, UserRole.LECTURER -> request.employerId ?: ""
+                    else -> ""
+                }
+
+                // Set registrationNumber based on role
+                registrationNumber = when (role) {
+                    UserRole.STUDENT -> request.registrationNumber ?: ""
+                    else -> ""
+                }
+
+                isActive = true
+                createdAt = LocalDateTime.now()
+                updatedAt = LocalDateTime.now()
             }
 
-            isActive = true
-            createdAt = LocalDateTime.now()
-            updatedAt = LocalDateTime.now()
-        }
+            // Generate and persist verification token inside the transaction
+            val token = UUID.randomUUID().toString()
+            user.emailVerificationToken = token
+            user.emailVerificationTokenExpiry = LocalDateTime.now().plusHours(24)
+            // Exposed will persist these changes on transaction commit
 
-        emailVerificationService.sendVerificationEmail(user)
+            // Capture values to use after the transaction
+            emailToNotify = user.email
+            verificationToken = token
+            createdUserResponse = mapToUserResponse(user)
+        } // transaction committed here
 
-        return@transaction mapToUserResponse(user)
+        // Send email after transaction commits (avoid network IO inside transaction)
+        // These non-null assertions are safe because values were assigned inside the transaction above.
+        emailVerificationService.sendVerificationEmail(emailToNotify!!, verificationToken!!, baseUrl)
+
+        return createdUserResponse!!
     }
 
-    fun verifyEmail(token: String): Boolean = transaction {
-        val user = User.find {
-            Users.emailVerificationToken eq token
-        }.firstOrNull() ?: throw java.lang.IllegalArgumentException("Invalid verification token")
+    fun verifyEmail(token: String?): Boolean {
+        if (token.isNullOrBlank()) return false
 
-        if(user.emailVerificationTokenExpiry?.isBefore(LocalDateTime.now()) == true) {
-            throw java.lang.IllegalArgumentException("Verification token has expired")
+        return transaction {
+            val user = User.find { Users.emailVerificationToken eq token }.firstOrNull()
+                ?: return@transaction false
+
+            // Check expiry
+            val expiry = user.emailVerificationTokenExpiry
+            if (expiry == null || expiry.isBefore(LocalDateTime.now())) {
+                return@transaction false
+            }
+
+            user.apply {
+                this.emailVerified = true
+                this.isActive = true
+                this.emailVerificationToken = null
+                this.emailVerificationTokenExpiry = null
+                this.updatedAt = LocalDateTime.now()
+            }
+
+            // persist occurs on transaction commit
+            true
         }
-
-        user.apply {
-            emailVerified = true
-            emailVerificationToken = null
-            emailVerificationTokenExpiry = null
-            updatedAt = LocalDateTime.now()
-        }
-
-        return@transaction true
     }
 
     fun login(credentials: LoginCredentials): LoginTokenResponse = transaction {

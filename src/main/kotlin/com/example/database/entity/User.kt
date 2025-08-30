@@ -23,7 +23,7 @@ object Users : UUIDTable() {
     val role: Column<UserRole> = enumeration("role", UserRole::class)
     val employerId: Column<String?> = varchar("employer_id", 50).nullable()
     val registrationNumber: Column<String?> = varchar("registration_number", 50).nullable()
-    val isActive: Column<Boolean> = bool("is_active").default(true)
+    val isActive: Column<Boolean> = bool("is_active").default(false)
     val profilePicture: Column<String?> = varchar("profile_picture", 255).nullable()
     val createdAt = datetime("created_at")
     val updatedAt = datetime("updated_at")
