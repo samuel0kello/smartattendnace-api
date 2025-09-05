@@ -62,4 +62,62 @@ sequenceDiagram
 
 ---
 
+## 2. Proposed Refinements
 
+While the current structure is functional, refinements can make the codebase more maintainable, testable, and aligned with common DDD (Domain-Driven Design) and Clean Architecture practices.
+
+### Refinement Goals
+
+* **Better separation of concerns**: Distinguish *domain*, *infrastructure*, and *application/web* clearly.
+* **Feature modularization**: Group by business capability (auth, courses, attendance, etc.).
+* **Clear layering**: Domain logic isolated from infrastructure (e.g., Exposed, email clients, DI frameworks).
+
+### Proposed Structure
+
+```
+src/main/kotlin/com/example
+│
+├── application
+│   ├── web
+│   │   ├── routes (API endpoints)
+│   │   └── Application.kt / Module.kt
+│   └── config (app configuration, DI wiring)
+│
+├── domain
+│   ├── auth
+│   ├── courses
+│   ├── attendance
+│   ├── model (entities, value objects)
+│   └── services (pure business logic)
+│
+├── infrastructure
+│   ├── database
+│   │   ├── entity (Exposed tables)
+│   │   └── DatabaseProvider.kt
+│   ├── email
+│   ├── security
+│   └── plugins
+│
+└── shared
+    ├── util
+    └── common DTOs / helpers
+```
+
+---
+
+### Benefits of Proposed Refinement
+
+* **Domain-driven clarity**: Domain logic is framework-agnostic, easier to test and reason about.
+* **Infrastructure isolation**: Exposed, email sending, and plugins are adapters that can be swapped out.
+* **API under `web`**: Routes become part of the application layer, keeping entry points consistent.
+* **Scalability**: Prepares the project for possible future microservice extraction.
+
+---
+
+### Future Enhancements
+
+* Introduce **CQRS/Use Cases** (application services) for more complex workflows.
+* Add **audit logging middleware** in the `web` layer to record every user/admin action transparently.
+* Support **multi-tenant design** if the system grows beyond a single institution.
+
+---
