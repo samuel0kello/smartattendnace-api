@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class ResponseData
 
-// Existing models
 @Serializable
 data class LoginCredentials(
     val email: String,
