@@ -1,13 +1,14 @@
 package com.example.database.entity
 
-import org.jetbrains.exposed.dao.UUIDEntity
-import org.jetbrains.exposed.dao.UUIDEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
-import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.javatime.Date
-import org.jetbrains.exposed.sql.javatime.datetime
-import java.util.UUID
+import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.dao.id.UUIDTable
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.dao.UUIDEntity
+import org.jetbrains.exposed.v1.dao.UUIDEntityClass
+import org.jetbrains.exposed.v1.datetime.timestamp
+import java.util.*
+import kotlin.time.ExperimentalTime
 
 enum class UserRole {
     ADMIN,
@@ -15,23 +16,28 @@ enum class UserRole {
     STUDENT
 }
 
-object Users : UUIDTable() {
-    val email: Column<String> = varchar("email", 255).uniqueIndex()
-    val passwordHash: Column<String> = varchar("password_hash", 255)
-    val firstName: Column<String> = varchar("first_name", 100)
-    val lastName: Column<String> = varchar("last_name", 100)
-    val role: Column<UserRole> = enumeration("role", UserRole::class)
-    val employerId: Column<String?> = varchar("employer_id", 50).nullable()
-    val registrationNumber: Column<String?> = varchar("registration_number", 50).nullable()
-    val isActive: Column<Boolean> = bool("is_active").default(false)
-    val profilePicture: Column<String?> = varchar("profile_picture", 255).nullable()
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
+object Users : UUIDTable("Users") {
+    val email = varchar("email", 255).uniqueIndex()
+    val passwordHash = varchar("password_hash", 255)
+    val firstName = varchar("first_name", 100)
+    val lastName = varchar("last_name", 100)
+    val role = enumeration("role", UserRole::class)
+    //check { it inList listOf("ADMIN", "LECTURER", "STUDENT") }
+    val employerId = varchar("employer_id", 50).nullable()
+    val registrationNumber = varchar("registration_number", 50).nullable()
+    val isActive = bool("is_active").default(false)
+    val profilePicture = varchar("profile_picture", 255).nullable()
+    @OptIn(ExperimentalTime::class)
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
+    @OptIn(ExperimentalTime::class)
+    val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
     val emailVerified = bool("email_verified").default(false)
     val emailVerificationToken = varchar("email_verification_token", 255).nullable()
-    val emailVerificationTokenExpiry = datetime("email_verification_token_expiry").nullable()
+    @OptIn(ExperimentalTime::class)
+    val emailVerificationTokenExpiry = timestamp("email_verification_token_expiry").nullable()
     val passwordResetToken = varchar("password_reset_token", 255).nullable()
-    val passwordResetTokenExpiry = datetime("password_reset_token_expiry").nullable()
+    @OptIn(ExperimentalTime::class)
+    val passwordResetTokenExpiry = timestamp("password_reset_token_expiry").nullable()
 }
 
 
@@ -47,16 +53,12 @@ class User(id: EntityID<UUID>) : UUIDEntity(id) {
     var registrationNumber by Users.registrationNumber
     var isActive by Users.isActive
     var profilePicture by Users.profilePicture
-    var createdAt by Users.createdAt
-    var updatedAt by Users.updatedAt
+    @OptIn(ExperimentalTime::class) var createdAt by Users.createdAt
+    @OptIn(ExperimentalTime::class) var updatedAt by Users.updatedAt
     var emailVerified by Users.emailVerified
     var emailVerificationToken by Users.emailVerificationToken
-    var emailVerificationTokenExpiry by Users.emailVerificationTokenExpiry
+    @OptIn(ExperimentalTime::class) var emailVerificationTokenExpiry by Users.emailVerificationTokenExpiry
     var passwordResetToken by Users.passwordResetToken
-    var passwordResetTokenExpiry by Users.passwordResetTokenExpiry
+    @OptIn(ExperimentalTime::class) var passwordResetTokenExpiry by Users.passwordResetTokenExpiry
 
-// Helper properties to check user type
-    val isAdmin get() = role == UserRole.ADMIN
-    val isLecturer get() = role == UserRole.LECTURER
-    val isStudent get() = role == UserRole.STUDENT
 }
