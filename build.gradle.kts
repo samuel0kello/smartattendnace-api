@@ -54,10 +54,13 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
-    implementation("org.jetbrains.exposed:exposed-core:0.43.0")
-    implementation("org.jetbrains.exposed:exposed-dao:0.43.0")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.43.0")
-    implementation("org.jetbrains.exposed:exposed-java-time:0.43.0") // For timestamps
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.h2)
+//    implementation("org.jetbrains.exposed:exposed-java-time:0.43.0")
+    implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.exposed.kotlinx.datetime)
 
     // Logging
     implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
