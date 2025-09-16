@@ -1,11 +1,10 @@
-package com.example.database.entity
+package com.example.infrastructure.database.entity
 
 
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.IntIdTable
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
-import org.jetbrains.exposed.v1.datetime.time
 import org.jetbrains.exposed.v1.datetime.timestamp
 import kotlin.time.ExperimentalTime
 

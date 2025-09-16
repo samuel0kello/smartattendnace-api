@@ -1,7 +1,7 @@
-package com.example
+package com.example.application
 
-import com.example.database.DatabaseProvider
-import com.example.plugins.*
+import com.example.infrastructure.database.DatabaseProvider
+import com.example.application.plugins.*
 import io.ktor.server.application.*
 import org.koin.ktor.ext.get
 

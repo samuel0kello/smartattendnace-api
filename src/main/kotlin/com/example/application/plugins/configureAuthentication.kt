@@ -1,7 +1,7 @@
-package com.example.plugins
+package com.example.application.plugins
 
-import com.example.services.auth.TokenProvider
-import com.example.util.ApiResponse
+import com.example.infrastructure.security.TokenProvider
+import com.example.shared.ApiResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

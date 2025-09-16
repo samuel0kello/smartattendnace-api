@@ -1,8 +1,9 @@
-package com.example.plugins
+package com.example.application.plugins
 
 import com.example.di.IClosableComponent
 import com.example.di.appModule
 import com.example.di.authModule
+import com.example.di.courseModule
 import com.example.di.databaseModule
 import com.example.di.emailModule
 import io.ktor.server.application.*
@@ -23,6 +24,7 @@ fun Application.configureDI() {
             appModule(environment.config),
             databaseModule,
             authModule,
+            courseModule,
             emailModule
         )
 

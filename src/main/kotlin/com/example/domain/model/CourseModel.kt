@@ -1,6 +1,6 @@
-package com.example.model
+package com.example.domain.model
 
-import com.example.util.UUIDSerializer
+import com.example.shared.UUIDSerializer
 import kotlinx.datetime.LocalTime
 import kotlin.time.Instant
 import kotlinx.serialization.Contextual
@@ -18,7 +18,7 @@ data class CourseModel(
     val schedules: List<CourseScheduleModel>,
     @OptIn(ExperimentalTime::class) @Contextual val createdAt: Instant,
     @OptIn(ExperimentalTime::class) @Contextual val updatedAt: Instant
-)
+): ResponseData()
 
 @Serializable
 data class CourseScheduleModel(
@@ -36,8 +36,6 @@ data class CreateCourseRequest(
     val title: String,
     val description: String?,
     val credits: Int,
-    @Serializable(with = UUIDSerializer::class)
-    val lecturerId: java.util.UUID
 )
 
 @Serializable

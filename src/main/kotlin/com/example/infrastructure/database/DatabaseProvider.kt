@@ -1,11 +1,11 @@
-package com.example.database
+package com.example.infrastructure.database
 
 import com.example.config.DatabaseConfig
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import java.sql.Connection
-import com.example.database.entity.Users
+import com.example.infrastructure.database.entity.Users
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.experimental.newSuspendedTransaction

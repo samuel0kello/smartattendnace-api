@@ -1,10 +1,10 @@
-package com.example.services.auth
+package com.example.infrastructure.security
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import com.example.database.entity.User
-import com.example.model.LoginTokenResponse
+import com.example.infrastructure.database.entity.User
+import com.example.domain.model.LoginTokenResponse
 import java.util.*
 
 class JwtConfig(private val secret: String) : TokenProvider {

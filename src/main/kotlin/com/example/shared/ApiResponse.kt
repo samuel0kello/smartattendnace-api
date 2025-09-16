@@ -1,6 +1,6 @@
-package com.example.util
+package com.example.shared
 
-import com.example.model.ResponseData
+import com.example.domain.model.ResponseData
 import kotlinx.serialization.Serializable
 
 

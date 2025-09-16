@@ -1,4 +1,4 @@
-package com.example
+package com.example.application
 
 import com.example.config.AppConfig
 import com.example.config.ConfigurationProvider

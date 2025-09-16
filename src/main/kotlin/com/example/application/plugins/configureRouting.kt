@@ -1,8 +1,10 @@
-package com.example.plugins
+package com.example.application.plugins
 
 import com.example.api.authRoutes
-import com.example.services.auth.AuthService
-import com.example.util.ApiResponse
+import com.example.api.courseRoutes
+import com.example.domain.services.auth.AuthService
+import com.example.domain.services.courses.CourseService
+import com.example.shared.ApiResponse
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.response.respond
@@ -12,6 +14,7 @@ import org.koin.ktor.ext.get
 
 fun Application.configureRouting() {
     val authService = get<AuthService>()
+    val courseService = get<CourseService>()
 
     routing {
         // Root route
@@ -42,6 +45,8 @@ fun Application.configureRouting() {
 
         // Authentication routes
         authRoutes(authService)
+
+        courseRoutes(courseService)
         
     }
 }

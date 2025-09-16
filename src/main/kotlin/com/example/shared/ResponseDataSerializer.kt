@@ -1,11 +1,11 @@
-package com.example.util
+package com.example.shared
 
-import com.example.model.AccessTokenResponse
-import com.example.model.CredentialsResponse
-import com.example.model.LoginTokenResponse
-import com.example.model.PasswordResetResponse
-import com.example.model.ResponseData
-import com.example.model.UserResponse
+import com.example.domain.model.AccessTokenResponse
+import com.example.domain.model.CredentialsResponse
+import com.example.domain.model.LoginTokenResponse
+import com.example.domain.model.PasswordResetResponse
+import com.example.domain.model.ResponseData
+import com.example.domain.model.UserResponse
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer
@@ -24,6 +24,7 @@ object ResponseDataSerializer : KSerializer<ResponseData> {
             is LoginTokenResponse -> encoder.encodeSerializableValue(LoginTokenResponse.serializer(), value)
             is PasswordResetResponse -> encoder.encodeSerializableValue(PasswordResetResponse.serializer(), value)
             is UserResponse -> encoder.encodeSerializableValue(UserResponse.serializer(), value)
+            else -> {}
         }
     }
     override fun deserialize(decoder: kotlinx.serialization.encoding.Decoder): ResponseData {

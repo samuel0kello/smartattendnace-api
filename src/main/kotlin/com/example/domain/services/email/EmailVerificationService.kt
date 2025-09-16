@@ -1,4 +1,4 @@
-package com.example.services.email
+package com.example.domain.services.email
 
 import com.example.web.Routes
 import java.net.URLEncoder

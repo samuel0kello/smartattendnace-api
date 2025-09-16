@@ -1,11 +1,11 @@
-package com.example.services.auth
+package com.example.domain.services.auth
 
-
-import com.example.database.entity.User
-import com.example.database.entity.UserRole
-import com.example.database.entity.Users
-import com.example.model.*
-import com.example.services.email.EmailVerificationService
+import com.example.infrastructure.database.entity.User
+import com.example.infrastructure.database.entity.UserRole
+import com.example.infrastructure.database.entity.Users
+import com.example.domain.model.*
+import com.example.domain.services.email.EmailVerificationService
+import com.example.infrastructure.security.TokenProvider
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
