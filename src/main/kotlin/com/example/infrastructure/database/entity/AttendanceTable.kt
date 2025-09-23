@@ -11,9 +11,9 @@ import org.jetbrains.exposed.v1.datetime.date
 import org.jetbrains.exposed.v1.datetime.timestamp
 import kotlin.time.ExperimentalTime
 
-object Attendance : IntIdTable("Attendance") {
+object AttendanceTable : IntIdTable("attendance") {
     val enrollment = reference("enrollment_id", Enrollments, onDelete = ReferenceOption.CASCADE)
-    val schedule = reference("schedule_id", Schedules, onDelete = ReferenceOption.CASCADE)
+    val schedule = reference("schedule_id", SchedulesTable, onDelete = ReferenceOption.CASCADE)
     val status = varchar("status", 20).check {
         it inList listOf("Present", "Absent", "Late", "Excused")
     }
@@ -22,13 +22,13 @@ object Attendance : IntIdTable("Attendance") {
     @OptIn(ExperimentalTime::class) val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp)
 }
 
-class AttendanceRecord(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<AttendanceRecord>(Attendance)
+class AttendanceEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<AttendanceEntity>(AttendanceTable)
 
-    var enrollment by Enrollment referencedOn Attendance.enrollment
-    var schedule by Schedule referencedOn Attendance.schedule
-    var status by Attendance.status
-    var date by Attendance.date
-    @OptIn(ExperimentalTime::class) var createdAt by Attendance.createdAt
-    @OptIn(ExperimentalTime::class) var updatedAt by Attendance.updatedAt
+    var enrollment by Enrollment referencedOn AttendanceTable.enrollment
+    var schedule by Schedule referencedOn AttendanceTable.schedule
+    var status by AttendanceTable.status
+    var date by AttendanceTable.date
+    @OptIn(ExperimentalTime::class) var createdAt by AttendanceTable.createdAt
+    @OptIn(ExperimentalTime::class) var updatedAt by AttendanceTable.updatedAt
 }
